@@ -3,8 +3,11 @@ import PySimpleGUI as sg
 
 def merge_pdf(input_path, output_path):
     input_pdf = PyPDF2.PdfReader(open(input_path, "rb"))
-    num_pages = input_pdf.getNumPages()
+    # num_pages = input_pdf.getNumPages()
+    num_pages = len(input_pdf.pages)
     output_pdf = PyPDF2.PdfWriter()
+    page_numbers = []
+
 
     if num_pages > 32:
         for i in range(0, num_pages, 32):
