@@ -2,13 +2,10 @@ import PyPDF2
 import PySimpleGUI as sg
 
 def merge_pdf(input_path, output_path):
-    input_pdf = PyPDF2.PdfFileReader(open(input_path, "rb"))
     input_pdf = PyPDF2.PdfReader(open(input_path, "rb"))
 
 
-    output_pdf = PyPDF2.PdfFileWriter()
-    page_numbers = []
-    num_pages = input_pdf.getNumPages()
+    output_pdf = PyPDF2.PdfWriter()
     if num_pages > 32:
         for i in range(0, num_pages, 32):
             page_numbers += list(range(i+31, i-1, -1))
