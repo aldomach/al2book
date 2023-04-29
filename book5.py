@@ -15,12 +15,13 @@ def merge_pdf(input_path, output_path):
     else:
         page_numbers = list(range(num_pages, 0, -1))
     for page_num in page_numbers:
-        page = input_pdf.getPage(page_num-1)
-        page.scale(0.5)
+        page = input_pdf.pages[page_num-1]
+        page.scale(0.5, 0.5)
+
         if page_num % 4 == 1:
             output_page = PyPDF2.pdf.PageObject.createBlankPage(None, 792, 612)
             output_canvas = PyPDF2.pdf.ContentStream([0, 0, 792, 0, 0, 612], output_pdf)
-        page.mergePage(output_page)
+        output_page = PyPDF2.pdf.PageObject.createBlankPage(None, 792, 612)
         x = 0 if page_num % 2 == 1 else 396
         y = 0 if page_num % 4 in [1, 2] else 306
         output_canvas.addXObject(page.pdfFormXObject, x, y)
