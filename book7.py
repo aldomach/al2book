@@ -1,37 +1,43 @@
-import os
 import PySimpleGUI as sg
-import fitz
+from PyPDF2 import PdfFileReader, PdfFileWriter
 
-def create_book(pdf_path):
-    doc = fitz.open(pdf_path)
-    num_pages = doc.page_count
-    new_doc = fitz.open()
-    for i in range(0, num_pages, 4):
-        for j in range(2):
-            for k in range(2):
-                if i+j*2+k < num_pages:
-                    page = doc[i+j*2+k]
-                    new_page = new_doc.new_page()
-                    new_page.show_pdf_page(page, matrix=fitz.Matrix(0.5, 0.5), clip=None, rotate=0)
-    new_pdf_path = os.path.splitext(pdf_path)[0] + '_book.pdf'
-    new_doc.save(new_pdf_path)
-    sg.popup(f"El nuevo PDF se ha guardado en:\n{new_pdf_path}")
+# Creamos la interfaz gráfica con PySimpleGUI
+layout = [[sg.Text('Selecciona un archivo PDF')],
+          [sg.Input(key='archivo'), sg.FileBrowse()],
+          [sg.Button('Abrir'), sg.Button('Guardar')]]
 
-sg.theme('DefaultNoMoreNagging')
+window = sg.Window('Ordenar y unir PDF', layout)
 
-layout = [[sg.Text('Selecciona un archivo PDF:')],
-          [sg.Input(key='-PDF-'), sg.FileBrowse()],
-          [sg.Button('Crear libro', key='-CREATE-')]]
-
-window = sg.Window('PDF Book Maker', layout)
-
+# Esperamos a que el usuario seleccione un archivo y haga clic en el botón Abrir
 while True:
     event, values = window.read()
-    if event in (sg.WINDOW_CLOSED, 'Exit'):
+    if event == sg.WIN_CLOSED:
         break
-    elif event == '-CREATE-':
-        pdf_path = values['-PDF-']
-        if pdf_path:
-            create_book(pdf_path)
+    if event == 'Abrir':
+        archivo = values['archivo']
+        # Leemos el archivo PDF y creamos un objeto PdfFileReader
+        pdf_reader = PdfFileReader(open(archivo, 'rb'))
+        # Creamos un objeto PdfFileWriter para escribir el nuevo archivo PDF
+        pdf_writer = PdfFileWriter()
+
+        # Definimos la secuencia de páginas a ordenar
+        secuencia = [31, 0, 30, 1, 29, 2, 28, 3, 27, 4, 26, 5, 25, 6, 24, 7, 23, 8, 22, 9, 21, 10, 20, 11, 19, 12, 18, 13, 17, 14, 16, 15]
+        # Iteramos sobre las páginas del archivo PDF original
+        for pagina in secuencia:
+            # Agregamos cada página al objeto PdfFileWriter
+            pdf_writer.addPage(pdf_reader.getPage(pagina))
+            # Si ya hemos agregado cuatro páginas, creamos una nueva hoja
+            if (pagina + 1) % 4 == 0:
+                pdf_writer.addBlankPage()
+
+        # Guardamos el nuevo archivo PDF
+        nuevo_archivo = archivo.split('.')[0] + '_book.pdf'
+        with open(nuevo_archivo, 'wb') as output_pdf:
+            pdf_writer.write(output_pdf)
+            sg.popup(f'Se ha guardado el archivo {nuevo_archivo}')
+
+    # Si el usuario hace clic en el botón Guardar sin haber seleccionado un archivo primero
+    elif event == 'Guardar' and not values['archivo']:
+        sg.popup('Por favor selecciona un archivo PDF primero')
 
 window.close()
